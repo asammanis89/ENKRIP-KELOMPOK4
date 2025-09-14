@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Utama Kriptografi</title>
+    <!-- Memuat library styling Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Menambahkan font dan efek transisi kustom */
+        body { 
+            font-family: 'Inter', sans-serif;
+            background-image: url('/static/BG2.png');
+            background-size: cover; /* Agar gambar menutupi seluruh halaman */
+            background-position: center; /* Agar gambar berada di tengah */
+            background-repeat: no-repeat; /* Agar gambar tidak berulang */
+        }
+        .btn { transition: all 0.2s ease-in-out; }
+        .btn:hover { 
+            transform: translateY(-3px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    
+    <div class="bg-white bg-opacity-80 backdrop-blur-sm p-10 rounded-xl shadow-lg text-center max-w-md w-full">
+        <h1 class="text-3xl font-bold text-gray-800 mb-8">Pilih Alat Kriptografi</h1>
+
+        <!-- Tombol 1: Terhubung ke rute /jalankan_aplikasi_aes di Python -->
+        <button onclick="panggilServer('/jalankan_aplikasi_aes')"
+            class="btn w-full bg-indigo-600 text-white font-bold py-4 px-6 rounded-lg mb-4 text-lg hover:bg-indigo-700">
+            Enkripsi & Dekripsi AES-256
+        </button>
+
+        <!-- Tombol 2: Terhubung ke rute /jalankan_fitur_2 di Python -->
+        <button onclick="panggilServer('/jalankan_fitur_2')"
+            class="btn w-full bg-gray-500 text-white font-bold py-4 px-6 rounded-lg mb-4 text-lg hover:bg-gray-600">
+            Fitur Lain 1 (Kosong)
+        </button>
+        
+        <!-- Tombol 3: Terhubung ke rute /jalankan_fitur_3 di Python -->
+        <button onclick="panggilServer('/jalankan_fitur_3')"
+            class="btn w-full bg-gray-500 text-white font-bold py-4 px-6 rounded-lg mb-4 text-lg hover:bg-gray-600">
+            Fitur Lain 2 (Kosong)
+        </button>
+
+        <!-- Div ini akan menampilkan pesan status dari server -->
+        <div id="status" class="mt-6 text-gray-600 h-6"></div>
+    </div>
+
+    <script>
+        // Fungsi JavaScript untuk "berbicara" dengan server Python saat tombol diklik
+        async function panggilServer(url) {
+            const statusDiv = document.getElementById('status');
+            statusDiv.textContent = 'Menghubungi server...';
+            try {
+                // Mengirim permintaan ke server
+                const response = await fetch(url);
+                // Menerima dan membaca respons dari server
+                const data = await response.json();
+                // Menampilkan pesan dari server di halaman
+                statusDiv.textContent = data.message;
+            } catch (error) {
+                statusDiv.textContent = 'Gagal terhubung ke server.';
+                console.error('Error:', error);
+            }
+            // Hapus pesan status setelah 5 detik
+            setTimeout(() => { statusDiv.textContent = ''; }, 5000);
+        }
+    </script>
+</body>
+</html>
+
