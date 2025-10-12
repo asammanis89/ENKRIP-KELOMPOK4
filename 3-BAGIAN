@@ -11,38 +11,29 @@ from Crypto.Util.Padding import pad, unpad
 # ==============================================================================
 
 # --- 1. PERSIAPAN TEKS (UNTUK PLAYFAIR) ---
-# Fungsi ini membersihkan dan memformat teks mentah menjadi pasangan huruf (digraf)
-# yang siap untuk dienkripsi dengan algoritma Playfair.
 def prepare_playfair_text(text: str) -> list[str]:
     """Mempersiapkan plaintext untuk enkripsi Playfair."""
-    # Bersihkan teks: ubah ke huruf besar, hapus non-alfabet, ganti J dengan I
     clean_text = list("".join(filter(str.isalpha, text.upper().replace('J', 'I'))))
     
     if not clean_text:
         return []
     
-    # Sisipkan 'X' di antara huruf kembar yang bersebelahan
     i = 0
     while i < len(clean_text) - 1:
         if clean_text[i] == clean_text[i+1]:
             clean_text.insert(i + 1, 'X')
         i += 2
         
-    # Tambahkan 'X' di akhir jika jumlah huruf ganjil
     if len(clean_text) % 2 != 0:
         clean_text.append('X')
         
-    # Gabungkan kembali dan pecah menjadi pasangan huruf (digraf)
     final_text = "".join(clean_text)
     return [final_text[j:j+2] for j in range(0, len(final_text), 2)]
 
 
 # --- 2. PLAYFAIR CIPHER (SUBSTITUSI DIGRAFIK) ---
-# Cipher ini bekerja dengan mengganti pasangan huruf (digraf) menggunakan
-# sebuah matriks 5x5 yang dibuat dari kunci.
 def playfair_process(digraphs: list[str], key: str, mode: str) -> str:
     """Fungsi untuk enkripsi dan dekripsi Playfair dari teks yang sudah disiapkan."""
-    # Langkah A: Persiapan Matriks Kunci 5x5
     alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"
     key_clean = "".join(OrderedDict.fromkeys(key.upper().replace('J', 'I')))
     matrix_str = key_clean + "".join([c for c in alphabet if c not in key_clean])
@@ -52,26 +43,23 @@ def playfair_process(digraphs: list[str], key: str, mode: str) -> str:
     result = []
     shift = 1 if mode == 'encrypt' else -1
 
-    # Langkah B: Proses Enkripsi/Dekripsi berdasarkan 3 Aturan Playfair
     for d in digraphs:
         if len(d) != 2 or d[0] not in coords_map or d[1] not in coords_map:
             continue
         r1, c1 = coords_map[d[0]]
         r2, c2 = coords_map[d[1]]
         
-        if r1 == r2: # Aturan 1: Baris sama, geser kolom
+        if r1 == r2:
             result.append(matrix[r1][(c1 + shift) % 5] + matrix[r2][(c2 + shift) % 5])
-        elif c1 == c2: # Aturan 2: Kolom sama, geser baris
+        elif c1 == c2:
             result.append(matrix[(r1 + shift) % 5][c1] + matrix[(r2 + shift) % 5][c2])
-        else: # Aturan 3: Membentuk persegi, tukar kolom
+        else:
             result.append(matrix[r1][c2] + matrix[r2][c1])
             
     return "".join(result)
 
 
 # --- 3. CAESAR CIPHER (CIPHER GESER) ---
-# Cipher klasik paling sederhana. Setiap huruf digeser maju/mundur
-# di alfabet berdasarkan kunci angka.
 def caesar_process(text: str, key: int, mode: str) -> str:
     """Fungsi untuk enkripsi dan dekripsi Caesar."""
     shift = key if mode == 'encrypt' else -key
@@ -85,8 +73,6 @@ def caesar_process(text: str, key: int, mode: str) -> str:
 
 
 # --- 4. AES (CIPHER BLOK MODERN) ---
-# Standar enkripsi modern yang sangat kuat. Bekerja pada blok data 16-byte.
-# Kode ini menggunakan mode ECB (Electronic Codebook).
 def aes_process(text: str, key: str, mode: str) -> str | None:
     """Fungsi untuk enkripsi dan dekripsi AES-128 dalam mode ECB."""
     try:
@@ -142,7 +128,19 @@ class ChainedCipherApp(customtkinter.CTk):
 
         result_card = customtkinter.CTkFrame(main_frame, corner_radius=15)
         result_card.pack(fill="x", padx=10, pady=10)
-        customtkinter.CTkLabel(result_card, text="Hasil Proses", font=("Inter", 18, "bold")).pack(pady=(15, 10))
+        
+        # --- PERBAIKAN DITAMBAHKAN DI SINI ---
+        # Membuat frame terpisah untuk judul hasil dan tombol salin agar bisa sejajar
+        result_header_frame = customtkinter.CTkFrame(result_card, fg_color="transparent")
+        result_header_frame.pack(fill="x", padx=15, pady=(15, 10))
+
+        customtkinter.CTkLabel(result_header_frame, text="Hasil Proses", font=("Inter", 18, "bold")).pack(side="left")
+        
+        # Membuat tombol Salin yang sebelumnya hilang
+        self.copy_button = customtkinter.CTkButton(result_header_frame, text="📋 Salin", width=100, command=self.copy_to_clipboard)
+        self.copy_button.pack(side="right")
+        # --- AKHIR DARI PERBAIKAN ---
+
         self.result_label = customtkinter.CTkLabel(result_card, text="", font=("Courier New", 14), wraplength=700, justify="left", corner_radius=10, fg_color="#242424")
         self.result_label.pack(fill="x", padx=15, pady=(0, 15), ipady=15)
 
@@ -164,37 +162,35 @@ class ChainedCipherApp(customtkinter.CTk):
 
         try:
             if mode == 'encrypt':
-                # === ALUR ENKRIPSI BARU ===
-                # LANGKAH 1 (PERSIAPAN): Teks asli diformat untuk Playfair.
                 prepared_text = prepare_playfair_text(input_text)
-                
-                # LANGKAH 2 (PLAYFAIR): Teks yang sudah disiapkan dienkripsi.
                 playfair_res = playfair_process(prepared_text, playfair_key, 'encrypt')
-                
-                # LANGKAH 3 (CAESAR): Hasil Playfair dienkripsi lagi.
                 caesar_res = caesar_process(playfair_res, caesar_key, 'encrypt')
-                
-                # LANGKAH 4 (AES): Hasil Caesar dienkripsi terakhir.
                 final_result = aes_process(caesar_res, aes_key, 'encrypt')
             else: # mode == 'decrypt'
-                # === ALUR DEKRIPSI (URUTAN DIBALIK) ===
-                # LANGKAH 1 (AES): Membuka lapisan terluar.
                 aes_res = aes_process(input_text, aes_key, 'decrypt')
-                
                 if aes_res is None:
                     final_result = "DEKRIPSI GAGAL: Kunci AES salah atau data rusak."
                 else:
-                    # LANGKAH 2 (CAESAR): Membuka lapisan Caesar.
                     caesar_res = caesar_process(aes_res, caesar_key, 'decrypt')
-                    
-                    # LANGKAH 3 (PLAYFAIR): Membuka lapisan Playfair.
-                    # Teks hasil dekripsi Caesar dipecah manual menjadi pasangan huruf.
                     playfair_digraphs = [caesar_res[i:i+2] for i in range(0, len(caesar_res), 2)]
                     final_result = playfair_process(playfair_digraphs, playfair_key, 'decrypt')
             
             self.result_label.configure(text=final_result)
         except Exception as e:
             messagebox.showerror("Error", f"Terjadi kesalahan tak terduga: {e}")
+
+    # --- FUNGSI COPY YANG DIPERBAIKI ---
+    # Kode yang salah penempatannya kini dimasukkan ke dalam method yang benar
+    def copy_to_clipboard(self):
+        """Menyalin teks dari label hasil ke clipboard."""
+        text_to_copy = self.result_label.cget("text")
+        # Ditambahkan pengecekan agar tidak menyalin pesan GAGAL
+        if text_to_copy and "GAGAL" not in text_to_copy:
+            self.clipboard_clear()
+            self.clipboard_append(text_to_copy)
+            original_text = self.copy_button.cget("text")
+            self.copy_button.configure(text="✔ Tersalin!")
+            self.after(2000, lambda: self.copy_button.configure(text=original_text))
 
 if __name__ == "__main__":
     app = ChainedCipherApp()
