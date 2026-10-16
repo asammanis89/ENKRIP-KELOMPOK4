@@ -33,6 +33,6 @@ python 3LENGKAP.py
 
 Proyek ini untuk **pembelajaran**. Mode AES yang dipakai adalah ECB, yang tidak disarankan untuk produksi karena pola data terlihat. Untuk aplikasi nyata gunakan AES-GCM atau CBC dengan IV acak.
 
-## Pengembang
+---
 
-**Ardha Febrian Muqorrobin** – [LinkedIn](https://www.linkedin.com/in/ardha-febrian-342317289/)
+Dibuat oleh Ardha Febrian. Portofolio dan kontak: [asammanis89.github.io](https://asammanis89.github.io), WhatsApp [0857-5517-1491](https://wa.me/6285755171491).
