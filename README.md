@@ -1,8 +1,11 @@
+![banner](docs/banner.png)
+
 # Enkripsi Berantai – Playfair, Caesar, dan AES (GUI Python)
 
 Aplikasi desktop (Python + CustomTkinter) yang mendemonstrasikan **enkripsi berantai**: teks diproses melalui **Playfair → Caesar → AES**, dengan penjelasan langkah demi langkah untuk setiap tahap. Dikembangkan sebagai tugas kelompok mata kuliah kriptografi.
 
-> 📷 Screenshot: tambahkan `docs/app.png` lalu tampilkan di sini.
+![Alur enkripsi berantai](docs/alur_enkrip.png)
+*Alur enkripsi berantai*
 
 ## Fitur
 
